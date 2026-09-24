@@ -314,6 +314,18 @@ const userAge = userId |> await fetchUserById |> getAgeFromUser;
 const userAge = getAgeFromUser(await fetchUserById(userId));
 ```
 
+管道运算符对多步骤的数据处理，非常有用。
+
+```javascript
+const numbers = [10, 20, 30, 40, 50];
+
+const processedNumbers = numbers
+  |> (_ => _.map(n => n / 2)) // [5, 10, 15, 20, 25]
+  |> (_ => _.filter(n => n > 10)); // [15, 20, 25]
+```
+
+上面示例中，管道运算符可以清晰表达数据处理的每一步，增加代码的可读性。
+
 ## Math.signbit()
 
 JavaScript 内部使用64位浮点数（国际标准 IEEE 754）表示数值。IEEE 754 规定，64位浮点数的第一位是符号位，`0`表示正数，`1`表示负数。所以会有两种零，`+0`是符号位为`0`时的零，`-0`是符号位为`1`时的零。实际编程中，判断一个值是`+0`还是`-0`非常麻烦，因为它们是相等的。
@@ -481,48 +493,4 @@ class FakeWindow extends Realm {
 ```
 
 上面代码中，`FakeWindow`模拟了一个假的顶层对象`window`。
-
-## JSON 模块
-
-import 命令目前只能用于加载 ES 模块，现在有一个[提案](https://github.com/tc39/proposal-json-modules)，允许加载 JSON 模块。
-
-假定有一个 JSON 模块文件`config.json`。
-
-```javascript
-{
-  "appName": "My App"
-}
-```
-
-目前，只能使用`fetch()`加载 JSON 模块。
-
-```javascript
-const response = await fetch('./config.json');
-const json = await response.json();
-```
-
-import 命令能够直接加载 JSON 模块以后，就可以像下面这样写。
-
-```javascript
-import configData from './config.json' assert { type: "json" };
-console.log(configData.appName);
-```
-
-上面示例中，整个 JSON 对象被导入为`configData`对象，然后就可以从该对象获取 JSON 数据。
-
-`import`命令导入 JSON 模块时，命令结尾的`assert {type: "json"}`不可缺少。这叫做导入断言，用来告诉 JavaScript 引擎，现在加载的是 JSON 模块。你可能会问，为什么不通过`.json`后缀名判断呢？因为浏览器的传统是不通过后缀名判断文件类型，标准委员会希望遵循这种做法，这样也可以避免一些安全问题。
-
-导入断言是 JavaScript 导入其他格式模块的标准写法，JSON 模块将是第一个使用这种语法导入的模块。以后，还会支持导入 CSS 模块、HTML 模块等等。
-
-动态加载模块的`import()`函数也支持加载 JSON 模块。
-
-```javascript
-import('./config.json', { assert: { type: 'json' } })
-```
-
-脚本加载 JSON 模块以后，还可以再用 export 命令输出。这时，可以将 export 和 import 结合成一个语句。
-
-```javascript
-export { config } from './config.json' assert { type: 'json' };
-```
 

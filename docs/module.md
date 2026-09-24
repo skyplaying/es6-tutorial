@@ -558,9 +558,68 @@ import * as ns from "mod";
 export {ns};
 ```
 
+## import 属性
+
+ES2025 引入了“[import 属性](https://github.com/tc39/proposal-import-attributes)”（import attributes），允许为 import 命令设置属性，主要用于导入非模块的代码，比如 JSON 数据、WebAssembly 代码、CSS 代码。
+
+导入 JSON 文件的写法如下。
+
+```javascript
+import configData from './config-data.json' with { type: 'json' };
+```
+
+上面代码中，import 命令使用 with 子句，指定一个属性对象。这个属性对象目前只有一个 type 属性，它的值就是导入代码的类型，这里设置为`json`。
+
+这种写法的一个缺点是，如果导入失败，整个模块就会崩溃。为了避免报错，可以使用异步的`import()`方法来导入。
+
+```javascript
+try {
+  const configData = await import(
+    './config-data.json', { with: { type: 'json' } }
+  );
+} catch(error) {
+  // 处理报错
+}
+```
+
+如果没有 import 属性，导入 JSON 文件只能使用 fetch 命令。
+
+```javascript
+const response = await fetch('./config.json');
+const json = await response.json();
+```
+
+export 命令与 import 命令写在一起，形成一个再导出语句时，也可以使用 import 属性。
+
+```javascript
+export { default as config } from './config-data.json' with { type: 'json' };
+```
+
+导入 CSS 文件的写法如下。
+
+```javascript
+import componentStyles from "./component.css" with { type: "css" };
+```
+
+下面是一个实际的例子。
+
+```javascript
+import sheet from './styles.css' with { type: 'css' };
+
+class MyComponent extends HTMLElement {
+  constructor() {
+    super();
+    const shadowRoot = this.attachShadow({ mode: 'open' });
+    shadowRoot.adoptedStyleSheets = [sheet];
+  }
+
+  // ...
+}
+```
+
 ## 模块的继承
 
-模块之间也可以继承。
+模块可以继承。
 
 假设有一个`circleplus`模块，继承了`circle`模块。
 
@@ -854,4 +913,15 @@ new URL('data.txt', import.meta.url)
 import.meta.scriptElement.dataset.foo
 // "abc"
 ```
+
+**（3）其他**
+
+Deno 现在还支持`import.meta.filename`和`import.meta.dirname`属性，对应 CommonJS 模块系统的`__filename`和`__dirname`属性。
+
+- `import.meta.filename`：当前模块文件的绝对路径。
+- `import.meta.dirname`：当前模块文件的目录的绝对路径。
+
+这两个属性都提供当前平台的正确的路径分隔符，比如 Linux 系统返回`/dev/my_module.ts`，Windows 系统返回`C:\dev\my_module.ts`。
+
+本地模块可以使用这两个属性，远程模块也可以使用。
 
